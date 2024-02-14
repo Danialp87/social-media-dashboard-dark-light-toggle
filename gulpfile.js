@@ -1,6 +1,7 @@
 
 // Initialize modules
-const { src, dest, watch, series } = require('gulp'); const sass = require('gulp-sass');
+const { src, dest, watch, series } = require('gulp');
+const sass = require('gulp-sass')(require('sass'));
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
@@ -9,7 +10,7 @@ const terser = require('gulp-terser');
 const browsersync = require('browser-sync').create();
 
 // Use dart-sass for @use
-sass.compiler = require('dart-sass');
+//sass.compiler = require('dart-sass');
 
 // Sass Task
 function scssTask() {
@@ -33,8 +34,8 @@ function jsTask() {
 function browserSyncServe(cb) {
     browsersync.init({
         server: {
-            baseDir:
-    },
+            baseDir: '.',
+        },
         notify: {
             styles: {
                 top: 'auto',
@@ -44,7 +45,18 @@ function browserSyncServe(cb) {
     });
     cb();
 }
-function browserSyncReLoad(cb) {
+function browserSyncReLoad() {
     browsersync.reload();
-    cb();
 }
+
+
+// Watch Task
+function watchTask() {
+    watch('*.html', browserSyncReLoad);
+    watch(
+        ['app/scss/**/*.scss', 'app/**/*.js'],
+        series(scssTask, jsTask)
+    ).on('change', browserSyncReLoad);
+}
+
+exports.default = series(scssTask, jsTask, browserSyncServe, watchTask);
